@@ -17,7 +17,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'hazelcast'
+    if: github.repository_owner == 'cheels'
     steps:
       - name: Setup JDK
         uses: actions/setup-java@v2
