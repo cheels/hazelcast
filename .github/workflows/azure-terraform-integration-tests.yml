@@ -49,7 +49,7 @@ jobs:
           -Dmaven.javadoc.skip \
           -DskipTests \
           -Dlicense.skip=true \
-          -Drat.skip=true 
+          -Drat.skip=true \
           -Dspotless.check.skip=true \
           -Dattribution.skip \
           -Danimal.sniffer.skip=true \
