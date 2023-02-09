@@ -19,7 +19,7 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'hazelcast'
+    if: github.repository_owner == 'cheels'
     steps:
       - name: Setup JDK
         uses: actions/setup-java@v2.1.0
