@@ -16,7 +16,7 @@ jobs:
     env:
       GCP_KEY_FILE: ${{ secrets.GCP_KEY_FILE }}
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'hazelcast'
+    if: github.repository_owner == 'cheels'
     steps:
       - name: Setup JDK
         uses: actions/setup-java@v2.1.0
