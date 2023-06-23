@@ -44,6 +44,7 @@ jobs:
       - name: Build hazelcast jar
         working-directory: master
         run: |
+          echo ${GITHUB_WORKSPACE}
           HAZELCAST_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "HAZELCAST_VERSION=${HAZELCAST_VERSION}" >> $GITHUB_ENV
 
@@ -61,8 +62,9 @@ jobs:
            -Dattribution.skip \
            -Danimal.sniffer.skip=true \
            -Dmaven.source.skip=true
-           pwd
+ 
            #cp hazelcast/target/hazelcast-*-SNAPSHOT.jar ${GITHUB_WORKSPACE}/aws-discovery-suite/terraform/tools/hazelcast.jar
+           #/home/runner/work/hazelcast/hazelcast/aws-discovery-suite/terraform/tools/client
 
       - name: Build client jar
         working-directory: aws-discovery-suite/terraform/tools/client
