@@ -20,10 +20,12 @@ jobs:
           token: ${{ secrets.PAT }} 
           path: aws-discovery-suite
           
+      - name: Build hazelcast jar
+        run: |
+          tree
+          
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          path: master
         
       - name: Setup JDK
         uses: actions/setup-java@v3
