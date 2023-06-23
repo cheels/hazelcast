@@ -19,15 +19,6 @@ jobs:
           distribution: adopt
           cache: 'maven'
 
-      - name: Decide which ref to checkout
-        id: decide-ref
-        run: |
-          if [[ "${{github.event_name}}" == "pull_request_target" ]]; then
-            echo "ref=refs/pull/${{ github.event.pull_request.number }}/merge" >> $GITHUB_OUTPUT
-          else
-            echo "ref=${{github.ref}}" >> $GITHUB_OUTPUT
-          fi
-
       - name: Checkout Auto Discovery Test Suite
         uses: actions/checkout@v3
         with:
@@ -37,9 +28,7 @@ jobs:
           
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          ref: ${{steps.decide-ref.outputs.ref}}
-                    
+
       - name: Build hazelcast jar
         run: |
           cd ${GITHUB_WORKSPACE}/hazelcast 
