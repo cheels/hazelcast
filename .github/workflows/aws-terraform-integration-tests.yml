@@ -1,15 +1,7 @@
 name: aws-tests
 on:
   workflow_dispatch:
-  pull_request_target:
-    types:
-      - labeled
-    branches:
-      - "master"
-      - "*.z"
-    paths:
-      - 'hazelcast/src/main/java/com/hazelcast/aws/**'
-      - '.github/terraform/aws/**'
+  pull_request:
 
 jobs:
   build:
@@ -17,18 +9,7 @@ jobs:
     defaults:
       run:
         shell: bash
-    env:
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
     runs-on: ubuntu-latest
-    if: >-
-      github.repository_owner == 'hazelcast' && 
-      ( github.event_name == 'workflow_dispatch' || 
-        (github.event_name == 'pull_request_target' && 
-          github.event.action == 'labeled' && 
-          github.event.label.name == 'run-discovery-tests' 
-        )
-      )
     steps:
       - name: Setup JDK
         uses: actions/setup-java@v3
@@ -47,47 +28,97 @@ jobs:
             echo "ref=${{github.ref}}" >> $GITHUB_OUTPUT
           fi
 
+      - name: Checkout Auto Discovery Test Suite
+        uses: actions/checkout@v3
+        with:
+          repository: cheels/auto-discovery-test-suite
+          token: ${{ secrets.PAT }} 
+          path: aws-discovery-suite
+          
       - name: Checkout
         uses: actions/checkout@v3
         with:
           ref: ${{steps.decide-ref.outputs.ref}}
-
+                    
       - name: Build hazelcast jar
         run: |
-          ./mvnw -T 4 -B -V -e clean package \
-          -Dfindbugs.skip \
-          -Dcheckstyle.skip \
-          -Dpmd.skip=true \
-          -Dspotbugs.skip \
-          -Denforcer.skip \
-          -Dmaven.javadoc.skip \
-          -DskipTests \
-          -Dlicense.skip=true \
-          -Drat.skip=true \
-          -Dspotless.check.skip=true \
-          -Dattribution.skip \
-          -Dmaven.source.skip=true
-          echo "Hazelcast jar is: " hazelcast/target/hazelcast-*-SNAPSHOT.jar
-          cp hazelcast/target/hazelcast-*-SNAPSHOT.jar ~/hazelcast.jar
+          cd ${GITHUB_WORKSPACE}/hazelcast 
+          HAZELCAST_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "HAZELCAST_VERSION=${HAZELCAST_VERSION}" >> $GITHUB_ENV
+
+           ./mvnw -T 4 -B -V -e clean install \
+           -Dfindbugs.skip \
+           -Dcheckstyle.skip \
+           -Dpmd.skip=true \
+           -Dspotbugs.skip \
+           -Denforcer.skip \
+           -Dmaven.javadoc.skip \
+           -DskipTests \
+           -Dlicense.skip=true \
+           -Drat.skip=true \
+           -Dspotless.check.skip=true \
+           -Dattribution.skip \
+           -Danimal.sniffer.skip=true \
+           -Dmaven.source.skip=true
+           echo "Hazelcast jar is: "${GITHUB_WORKSPACE}/hazelcast/target/hazelcast-*-SNAPSHOT.jar
+           cp ${GITHUB_WORKSPACE}/hazelcast/hazelcast/target/hazelcast-*-SNAPSHOT.jar ${GITHUB_WORKSPACE}/aws-discovery-suite/terraform/tools/hazelcast.jar
+          
+      - name: Build client jar
+        working-directory: aws-discovery-suite/terraform/tools/client
+        run: |
+          mvn versions:set-property -Dproperty=hazelcast.version -DnewVersion=$HAZELCAST_VERSION
+          mvn clean package
+          mv target/aws-discovery-client.jar aws-discovery-client.jar
+
+      - name: Set Up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v2.4.1
+        with:
+          install: true
+
+      - name: Authenticate to GAR
+        uses: docker/login-action@v2
+        with:
+          registry: us-east1-docker.pkg.dev
+          username: _json_key
+          password: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Generate Hazelcast and Client Image Name
+        id: get-image-tag
+        run: |
+          echo "HZ_IMG=${{ env.GAR_REGION }}-docker.pkg.dev/${{ env.GAR_PROJECT }}/${{ env.GAR_REPO }}/$(uuidgen):3d" >> $GITHUB_OUTPUT
+          echo "CL_IMG=${{ env.GAR_REGION }}-docker.pkg.dev/${{ env.GAR_PROJECT }}/${{ env.GAR_REPO }}/$(uuidgen):3d" >> $GITHUB_OUTPUT
+
+      - name: Build Hazelcast Image
+        uses: docker/build-push-action@v4.0.0
+        with:
+          working-directory: aws-discovery-suite/terraform/tools
+          context: .
+          builder: ${{ steps.buildx.outputs.name }}
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.get-image-tag.outputs.HZ_IMG }}
+
+      - name: Build Client Image
+        uses: docker/build-push-action@v4.0.0
+        with:
+          context: .
+          builder: ${{ steps.buildx.outputs.name }}
+          file: terraform/tools/client/Dockerfile
+          push: true
+          tags: ${{ steps.get-image-tag.outputs.CL_IMG }}
 
       - name : Set-up Terraform
         uses: hashicorp/setup-terraform@v2.0.0
         with:
           terraform_version: 1.1.8
 
-      - name: Terraform Init
-        working-directory: .github/terraform/aws
-        run: terraform init
-
-      - name: Terraform Apply
-        working-directory: .github/terraform/aws
-        run: |
-          terraform apply \
-            -var="hazelcast_mancenter_version=latest-snapshot" \
-            -var="hazelcast_path=~/hazelcast.jar" \
-            -auto-approve
-
-      - name: Terraform Destroy
-        if: ${{ always() }}
-        working-directory: .github/terraform/aws
-        run: terraform destroy -auto-approve
+      - name: Cache Golang dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
