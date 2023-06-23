@@ -7,14 +7,6 @@ jobs:
     name: AWS Tests
     runs-on: ubuntu-latest
     steps:
-      - name: Setup JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: 11
-          architecture: x64
-          distribution: adopt
-          cache: 'maven'
-
       - name: Checkout Auto Discovery Test Suite
         uses: actions/checkout@v3
         with:
@@ -24,6 +16,14 @@ jobs:
           
       - name: Checkout
         uses: actions/checkout@v3
+        
+      - name: Setup JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: 11
+          architecture: x64
+          distribution: adopt
+          cache: 'maven'
 
       - name: Build hazelcast jar
         run: |
