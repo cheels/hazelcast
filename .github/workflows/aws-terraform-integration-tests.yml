@@ -22,6 +22,8 @@ jobs:
           
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          path: master
         
       - name: Setup JDK
         uses: actions/setup-java@v3
@@ -58,9 +60,7 @@ jobs:
            -Dattribution.skip \
            -Danimal.sniffer.skip=true \
            -Dmaven.source.skip=true
-           pwd 
-           ls
-           ls hazelcast/target/
+            tree
            cp hazelcast/target/hazelcast-*-SNAPSHOT.jar ${GITHUB_WORKSPACE}/aws-discovery-suite/terraform/tools/hazelcast.jar
 
       - name: Build client jar
