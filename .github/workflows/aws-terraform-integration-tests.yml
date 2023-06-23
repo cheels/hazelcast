@@ -62,14 +62,12 @@ jobs:
            -Dattribution.skip \
            -Danimal.sniffer.skip=true \
            -Dmaven.source.skip=true
- 
-           #cp hazelcast/target/hazelcast-*-SNAPSHOT.jar ${GITHUB_WORKSPACE}/aws-discovery-suite/terraform/tools/hazelcast.jar
-           #/home/runner/work/hazelcast/hazelcast/aws-discovery-suite/terraform/tools/client
+            cp hazelcast/target/hazelcast-*-SNAPSHOT.jar ${GITHUB_WORKSPACE}/aws-discovery-suite/terraform/tools/hazelcast.jar
+
 
       - name: Build client jar
         working-directory: aws-discovery-suite/terraform/tools/client
         run: |
-          pwd
           mvn versions:set-property -Dproperty=hazelcast.version -DnewVersion=$HAZELCAST_VERSION
           mvn clean package
           mv target/aws-discovery-client.jar aws-discovery-client.jar
