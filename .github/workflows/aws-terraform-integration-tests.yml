@@ -53,8 +53,8 @@ jobs:
            -Danimal.sniffer.skip=true \
            -Dmaven.source.skip=true
            echo "Hazelcast jar is: "${GITHUB_WORKSPACE}/hazelcast/target/hazelcast-*-SNAPSHOT.jar
-           cp ${GITHUB_WORKSPACE}/hazelcast/hazelcast/target/hazelcast-*-SNAPSHOT.jar ${GITHUB_WORKSPACE}/aws-discovery-suite/terraform/tools/hazelcast.jar
-          
+           cp ${GITHUB_WORKSPACE}/target/hazelcast-*-SNAPSHOT.jar ${GITHUB_WORKSPACE}/aws-discovery-suite/terraform/tools/hazelcast.jar
+
       - name: Build client jar
         working-directory: aws-discovery-suite/terraform/tools/client
         run: |
