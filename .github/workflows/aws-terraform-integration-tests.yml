@@ -106,7 +106,7 @@ jobs:
         with:
           context: .
           builder: ${{ steps.buildx.outputs.name }}
-          file: terraform/tools/client/Dockerfile
+          file: client/Dockerfile
           push: true
           tags: ${{ steps.get-image-tag.outputs.CL_IMG }}
 
