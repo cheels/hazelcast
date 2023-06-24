@@ -85,29 +85,19 @@ jobs:
           username: _json_key
           password: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Generate Hazelcast and Client Image Name
-        id: get-image-tag
-        run: |
-          echo "HZ_IMG=${{ env.GAR_REGION }}-docker.pkg.dev/${{ env.GAR_PROJECT }}/${{ env.GAR_REPO }}/$(uuidgen):3d" >> $GITHUB_OUTPUT
-          echo "CL_IMG=${{ env.GAR_REGION }}-docker.pkg.dev/${{ env.GAR_PROJECT }}/${{ env.GAR_REPO }}/$(uuidgen):3d" >> $GITHUB_OUTPUT
-
       - name: Build Hazelcast Image
-        uses: docker/build-push-action@v4.0.0
-        with:
-          context: .
-          builder: ${{ steps.buildx.outputs.name }}
-          file: aws-discovery-suite/terraform/tools/Dockerfile
-          push: true
-          tags: ${{ steps.get-image-tag.outputs.HZ_IMG }}
-
+        working-directory: aws-discovery-suite/terraform/tools
+        run: |
+          HZ_IMG=${{ env.GAR_REGION }}-docker.pkg.dev/${{ env.GAR_PROJECT }}/${{ env.GAR_REPO }}/$(uuidgen):3d
+          docker build -t $HZ_IMG .
+          docker push $HZ_IMG
+         
       - name: Build Client Image
-        uses: docker/build-push-action@v4.0.0
-        with:
-          context: .
-          builder: ${{ steps.buildx.outputs.name }}
-          file: aws-discovery-suite/terraform/tools/client/Dockerfile
-          push: true
-          tags: ${{ steps.get-image-tag.outputs.CL_IMG }}
+        working-directory: aws-discovery-suite/terraform/tools/client
+        run: |
+          CL_IMG=${{ env.GAR_REGION }}-docker.pkg.dev/${{ env.GAR_PROJECT }}/${{ env.GAR_REPO }}/$(uuidgen):3d
+          docker build -t $CL_IMG .
+          docker push $CL_IMG
 
       - name : Set-up Terraform
         uses: hashicorp/setup-terraform@v2.0.0
