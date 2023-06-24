@@ -94,18 +94,18 @@ jobs:
       - name: Build Hazelcast Image
         uses: docker/build-push-action@v4.0.0
         with:
-          context: "{{defaultContext}}:aws-discovery-suite/terraform/tools"
+          context: .
           builder: ${{ steps.buildx.outputs.name }}
-          file: Dockerfile
+          file: aws-discovery-suite/terraform/tools/Dockerfile
           push: true
           tags: ${{ steps.get-image-tag.outputs.HZ_IMG }}
 
       - name: Build Client Image
         uses: docker/build-push-action@v4.0.0
         with:
-          context: "{{defaultContext}}:aws-discovery-suite/terraform/tools/client"
+          context: .
           builder: ${{ steps.buildx.outputs.name }}
-          file: Dockerfile
+          file: aws-discovery-suite/terraform/tools/client/Dockerfile
           push: true
           tags: ${{ steps.get-image-tag.outputs.CL_IMG }}
 
