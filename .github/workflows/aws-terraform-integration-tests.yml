@@ -89,15 +89,15 @@ jobs:
         working-directory: aws-discovery-suite/terraform/tools
         run: |
           HZ_IMG=${{ env.GAR_REGION }}-docker.pkg.dev/${{ env.GAR_PROJECT }}/${{ env.GAR_REPO }}/$(uuidgen):3d
-          docker build -t $HZ_IMG .
-          docker push $HZ_IMG
+          docker build -f Dockerfile -t ${HZ_IMG} .
+          docker push ${HZ_IMG}
          
       - name: Build Client Image
         working-directory: aws-discovery-suite/terraform/tools/client
         run: |
           CL_IMG=${{ env.GAR_REGION }}-docker.pkg.dev/${{ env.GAR_PROJECT }}/${{ env.GAR_REPO }}/$(uuidgen):3d
-          docker build -t $CL_IMG .
-          docker push $CL_IMG
+          docker build -f Dockerfile -t ${CL_IMG} .
+          docker push ${CL_IMG}
 
       - name : Set-up Terraform
         uses: hashicorp/setup-terraform@v2.0.0
