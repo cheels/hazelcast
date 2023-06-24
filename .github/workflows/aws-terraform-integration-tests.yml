@@ -63,7 +63,7 @@ jobs:
            -Danimal.sniffer.skip=true \
            -Dmaven.source.skip=true
             cp hazelcast/target/hazelcast-*-SNAPSHOT.jar ${GITHUB_WORKSPACE}/aws-discovery-suite/terraform/tools/hazelcast.jar
-
+            ls ${GITHUB_WORKSPACE}/aws-discovery-suite/terraform/tools
 
       - name: Build client jar
         working-directory: aws-discovery-suite/terraform/tools/client
