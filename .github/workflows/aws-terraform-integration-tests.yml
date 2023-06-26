@@ -1,6 +1,7 @@
 name: aws-tests
 on:
   workflow_dispatch:
+  pull_request:
 
 env:
   GCP_PROJECT_ID: hazelcast-33
