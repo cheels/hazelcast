@@ -11,7 +11,11 @@ on:
     paths:
       - 'hazelcast/src/main/java/com/hazelcast/aws/**'
       - '.github/terraform/aws/**'
-
+      
+defaults:
+  run:
+    working-directory: aws-discovery-suite/terraform/test
+    
 jobs:
   build:
     name: Build Jar's And Docker Images
@@ -22,9 +26,6 @@ jobs:
     name: Run Tests
     needs: build
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: aws-discovery-suite/terraform/test
     env:
       AWS_REGION: us-east-1
     if: >-
