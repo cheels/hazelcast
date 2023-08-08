@@ -19,19 +19,14 @@ jobs:
       GAR_REGION: us-east1
       GAR_REPO: auto-discovery-test-suite
       AWS_REGION: us-east-1
+      JSON: ${{ toJSON(github) }}
     defaults:
       run:
         working-directory: aws-discovery-suite/terraform/test
     outputs:
       HZ_IMG: ${{ steps.get-hz-image-tag.outputs.HZ_IMG }}
       CL_IMG: ${{ steps.get-cl-image-tag.outputs.CL_IMG }}
-    steps:
-      - name: Dump GitHub context
-        id: github_context_step
-        run: echo $JSON
-        env:
-          JSON: ${{ toJSON(github) }}
-          
+    steps:          
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2.0.0
         with:
