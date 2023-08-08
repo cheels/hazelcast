@@ -26,6 +26,12 @@ jobs:
       HZ_IMG: ${{ steps.get-hz-image-tag.outputs.HZ_IMG }}
       CL_IMG: ${{ steps.get-cl-image-tag.outputs.CL_IMG }}
     steps:
+      - name: Dump GitHub context
+        id: github_context_step
+        run: echo $JSON
+        env:
+          JSON: ${{ toJSON(github) }}
+          
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2.0.0
         with:
