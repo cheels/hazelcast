@@ -2,19 +2,19 @@ name: aws-tests
 
 on:
   workflow_dispatch:
-
-env:
-  GAR_PROJECT_ID: hazelcast-33
-  GAR_REGION: us-east1
-  GAR_REPO: auto-discovery-test-suite
-  AWS_REGION: us-east-1
-
-defaults:
-  run:
-    working-directory: aws-discovery-suite/terraform/test
+  pull_request_target:
+    types:
+      - labeled
+    branches:
+      - "master"
+      - "*.z"
+    paths:
+      - 'hazelcast/src/main/java/com/hazelcast/aws/**'
+      - '.github/terraform/aws/**'
 
 jobs:
   build:
+    name: Build Jar's And Docker Images
     uses: ./.github/workflows/build-artifact.yml
     secrets: inherit
 
@@ -22,6 +22,19 @@ jobs:
     name: Run Tests
     needs: build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aws-discovery-suite/terraform/test
+    env:
+      AWS_REGION: us-east-1
+    if: >-
+      github.repository_owner == 'hazelcast' && 
+      ( github.event_name == 'workflow_dispatch' || 
+        (github.event_name == 'pull_request_target' && 
+          github.event.action == 'labeled' && 
+          github.event.label.name == 'run-discovery-tests' 
+        )
+      )
     strategy:
       matrix:
         suite: ['ec2_cl_to_ec2_m', 'ec2_cl_to_fargate_ecs_m', 'fargate_ecs_cl_to_ec2_m', 'fargate_ecs_cl_to_fargate_ecs_m']
@@ -33,11 +46,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Get Secrets
+        uses: aws-actions/aws-secretsmanager-get-secrets@v1
+        with:
+          secret-ids: |
+            DEVOPS_GITHUB_TOKEN,CN/DEVOPS_GITHUB_TOKEN
+
       - name: Checkout Auto Discovery Test Suite
         uses: actions/checkout@v3
         with:
           repository: hazelcast/auto-discovery-test-suite
-          token: ${{ secrets.PAT }}
+          token: ${{ env.DEVOPS_GITHUB_TOKEN }}
           path: aws-discovery-suite
 
       - name: Download hazelcast.jar
@@ -67,6 +86,7 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
+
       - name: Run Tests
         run: |
-          go test -v -timeout 20m -run TestSuite -suite ${{ matrix.suite }} -member-image ${{ needs.build.outputs.HZ_IMG }} -client-image ${{ needs.build.outputs.CL_IMG }}          go test -v -timeout 20m -run TestSuite -suite ${{ matrix.suite }} -member-image ${{ needs.build.outputs.HZ_IMG }} -client-image ${{ needs.build.outputs.CL_IMG }}
+          go test -v -timeout 20m -run TestSuite -suite ${{ matrix.suite }} -member-image ${{ needs.build.outputs.HZ_IMG }} -client-image ${{ needs.build.outputs.CL_IMG }}
