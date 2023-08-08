@@ -15,6 +15,9 @@ jobs:
   build:
     name: Build Artifacts
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aws-discovery-suite/terraform/test
     env:
       GAR_PROJECT_ID: hazelcast-33
       GAR_REGION: us-east1
