@@ -22,7 +22,7 @@ defaults:
 
 jobs:
   build:
-    name: AWS Tests
+    name: Build Artifacts
     runs-on: ubuntu-latest
     outputs:
       HZ_IMG: ${{ steps.get-hz-image-tag.outputs.HZ_IMG }}
